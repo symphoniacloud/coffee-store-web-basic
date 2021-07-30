@@ -1,0 +1,83 @@
+Description: Web
+
+Parameters:
+  CertificateArn:
+    Type: String
+
+  HostedZoneId:
+    Type: String
+
+  SiteDomainName:
+    Type: String
+    Default: 'cloudcoffeebreak.com'
+
+Outputs:
+  SiteBucket:
+    Value: !Ref SiteBucket
+
+  CloudFrontDistributionId:
+    Value: !Ref CloudFrontDistribution
+
+Resources:
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Ref SiteBucket
+
+  ReadPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject
+            Effect: Allow
+            Resource: !Sub 'arn:aws:s3:::${SiteBucket}/*'
+            Principal:
+              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          SslSupportMethod:  sni-only
+          MinimumProtocolVersion: 'TLSv1.1_2016'
+        Aliases:
+          - !Ref SiteDomainName
+        Origins:
+          - Id: s3origin
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
+        DefaultCacheBehavior:
+          Compress: true
+          # Update this as necessary
+          DefaultTTL: 60
+          TargetOriginId: s3origin
+          ViewerProtocolPolicy: 'redirect-to-https'
+          # "Managed-CachingOptimized" from https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        DefaultRootObject: 'index.html'
+
+  DNSRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+        - Name: !Ref SiteDomainName
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2 # This is Cloudfront's own hosted zone
+            DNSName: !GetAtt CloudFrontDistribution.DomainName
