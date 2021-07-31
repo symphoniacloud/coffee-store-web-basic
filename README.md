@@ -28,7 +28,7 @@ This example deploys a _CloudFormation Stack_, containing the following resource
   going through S3's web hosting, along with a bucket policy allowing this identity access to your content bucket.
 * A CloudFront distribution, using your S3 bucket as its "origin", setup with some standard TLS / SSL properties, along
   with your certificate and custom domain name
-* A record in Route53 to point DNS for your site's custom domain name.
+* A DNS record in Route53 for your site's custom domain name.
 
 This example has two resource pre-requisites - a Route53 DNS _Hosted Zone_ and an SSL / TLS certificate in AWS
 Certificate Manager (ACM). The additionally included "prereqs" template will deploy a new Route 53 zone, as well as a
@@ -73,14 +73,14 @@ the certificate, then comment out the hosted zone resource in the prereqs templa
 
 ## Making updates
 
-The most immediate thing you'll want to do is deploy some actually interesting content. The [`deploy.sh`](./deploy.sh)
-script performs an `s3 sync`, and you'll want to use your own content. Typically, you'll want to build that just prior
+The most immediate thing you'll want to do next is deploy some actually interesting content. The [`deploy.sh`](./deploy.sh)
+script performs an `s3 sync`, and you can change the source path in that line as necessary. Typically, you'll want to build your site just prior
 to deployment.
 
-After that you might want consider changing some of the CloudFront caching configuration, for example default TTL or the
+After that you might want to consider changing some of the CloudFront caching configuration, for example default TTL or the
 cache policy.
 
-If you're hosting a "landing page" type website you might want to host both "yourdomain.com" and "www.yourdomain. com" .
+If you're hosting a "landing page" type website you might want to host both "yourdomain.com" and "www.yourdomain.com" .
 To do this, and assuming you're using a wildcard certificate that will host both of these domain names, you can add a
 second element to the `Aliases` list in the `CloudFrontDistribution` resource, e.g. as follows:
 
@@ -92,9 +92,7 @@ You'll also need to add a second DNS Record. You can do this by adding a new ele
 `DNSRecord` resource - duplicate the existing one, but change the name to the same as the new alias name.
 
 For most websites you'll also often want things like default pages in subdirectories. For that your best bet is likely
-to use [_CloudFront
-Functions_](https://aws.amazon.com/blogs/aws/introducing-cloudfront-functions-run-your-code-at-the-edge-with-low-latency-at-any-scale/)
-.
+to use [_CloudFront Functions_](https://aws.amazon.com/blogs/aws/introducing-cloudfront-functions-run-your-code-at-the-edge-with-low-latency-at-any-scale/) .
 
 ## Scaling and Cost
 
