@@ -12,7 +12,7 @@ class CoffeeStoreWeb extends Stack {
         super(scope, id, props);
 
         // This is a very basic example that just uses the default cloudfront.net domain name
-        // For an example of setting a custom domain name, see the https://github.com/symphoniacloud/coffee-store-web-demo project
+        // For an example of setting a custom domain name, see the https://github.com/symphoniacloud/coffee-store-web-full project
         const website = new Website(this, 'Website', {
             // This
             content: {
@@ -20,7 +20,7 @@ class CoffeeStoreWeb extends Stack {
                 path: 'src/site',
                 // You probably don't want to do this on a real project in development since invalidations can start costing money
                 // For a better production vs development setup, see how I do it
-                // in the https://github.com/symphoniacloud/coffee-store-web-demo project
+                // in the https://github.com/symphoniacloud/coffee-store-web-full project
                 performCacheInvalidation: true
             }
         })

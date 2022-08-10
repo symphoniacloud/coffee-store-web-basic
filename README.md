@@ -1,4 +1,4 @@
-# Coffee Store Web - Deploying a simple website on AWS
+# Coffee Store Web Basic - Deploying a website on AWS
 
 There are many ways of hosting websites. If you want to host on AWS it's not as easy as it could be, but this example
 will get you started.
@@ -12,7 +12,7 @@ Deploying a "static" website on AWS is surprisingly tricky - it requires managin
 This example is part of a collection of CDK examples - others are as follows:
 
 * [CDK bare-bones app for TypeScript](https://github.com/symphoniacloud/cdk-bare-bones) - Base project for any TypeScript app using CDK for deployment to AWS. **Try this first if you are getting started with CDK.**
-* [Coffee Store Web Full](https://github.com/symphoniacloud/coffee-store-web-demo) - An extension of **this project** that is a real working demo of a production-ready website, including TLS certificates, DNS, Github Actions Workflows, multiple CDK environments (prod vs test vs dev). **Head straight to this project if you already familiar with CDK and deploying websites to AWS.** 
+* [Coffee Store Web Full](https://github.com/symphoniacloud/coffee-store-web-full) - An extension of **this project** that is a real working demo of a production-ready website, including TLS certificates, DNS, Github Actions Workflows, multiple CDK environments (prod vs test vs dev). **Head straight to this project if you already familiar with CDK and deploying websites to AWS.** 
 * [Coffee Store V2](https://github.com/symphoniacloud/coffee-store-v2) - Includes a Lambda Function resource; source code + build for the Lambda Function; unit + in-cloud integration tests
 
 ## How this example works
@@ -61,7 +61,11 @@ For other commands, **including how to teardown**, see the [_Usage_ section of t
 
 The most immediate thing you'll want to do next is deploy some actually interesting content. By default this project uploads everything from [_src/site_](src/site) to your site, so you can just change the contents of that directory. Alternatively if your site has a build process you may want to run that first, and change the `content` -> `path` property in [app.ts](src/cdk/app.ts) to point to your build output folder.
 
-Other next steps including custom domain names, setting up mutliple environments, using Github Actions, and more, can be found in the larger [Coffee Store Web Full](https://github.com/symphoniacloud/coffee-store-web-demo) project.
+Other next steps including custom domain names, setting up multiple environments, using Github Actions, and more, can be found in the larger [Coffee Store Web Full](https://github.com/symphoniacloud/coffee-store-web-full) project.
+
+## CDK Style
+
+My style of using CDK is a little different from the default templates provided by AWS. For more details, and reasoning, see the [_Motivation_ section of the bare-bones project Readme](https://github.com/symphoniacloud/cdk-bare-bones#design-decisions--motivation).
 
 ## Scaling and Cost
 
