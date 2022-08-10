@@ -1,98 +1,67 @@
-# Coffee Store Web - Deploying an HTTPS website with a custom domain name on AWS
+# Coffee Store Web - Deploying a simple website on AWS
 
 There are many ways of hosting websites. If you want to host on AWS it's not as easy as it could be, but this example
 will get you started.
 
 ## Introduction
 
-In this modern age of the web, it's become standard to host websites using https / SSL / TLS. If all you need is plain
-http, then just [S3 is sufficient](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html), however
-you can't use S3's website hosting feature if you want a custom domain name with https. Instead, you'll need to use a
-combination of S3 **and** CloudFront, and this is where it gets complicated.
+Deploying a "static" website on AWS is surprisingly tricky - it requires managing S3, CloudFront, the security between them, Route 53, and more. This example project helps you get started using [**AWS CDK**](https://docs.aws.amazon.com/cdk/v2/guide/home.html) to deploy a website.
 
-CloudFront is AWS' CDN - content delivery network. CloudFront can scale out well for huge usages, but it's not as
-user-friendly as something like Netlify. When setting up CloudFront you're responsible for several things:
+> If you are looking to do this with "vanilla" CloudFormation, see the older version of this project in the [CloudFormation branch](https://github.com/symphoniacloud/coffee-store-web/tree/cloudformation-version).
 
-* Setting up a certificate and providing it to CloudFront
-* Managing DNS
-* Figuring out how you want to wire up CloudFront to your "origin" (S3 in our case), with all the various options you're
-  forced to specify
-* ... and you still need to maintain the S3 bucket
+This example is part of a collection of CDK examples - others are as follows:
+
+* [CDK bare-bones app for TypeScript](https://github.com/symphoniacloud/cdk-bare-bones) - Base project for any TypeScript app using CDK for deployment to AWS. **Try this first if you are getting started with CDK.**
+* [Coffee Store Web Full](https://github.com/symphoniacloud/coffee-store-web-demo) - An extension of **this project** that is a real working demo of a production-ready website, including TLS certificates, DNS, Github Actions Workflows, multiple CDK environments (prod vs test vs dev). **Head straight to this project if you already familiar with CDK and deploying websites to AWS.** 
+* [Coffee Store V2](https://github.com/symphoniacloud/coffee-store-v2) - Includes a Lambda Function resource; source code + build for the Lambda Function; unit + in-cloud integration tests
 
 ## How this example works
 
-This example deploys a _CloudFormation Stack_, containing the following resources:
+This example deploys a CDK _App_ that uses S3 and CloudFront to host a website.
 
-* An S3 bucket to host your website content
-* A _CloudFrontOriginAccessIdentity_ that allows CloudFront to access S3 directly (via a so-called _S3 Origin_) without
-  going through S3's web hosting, along with a bucket policy allowing this identity access to your content bucket.
-* A CloudFront distribution, using your S3 bucket as its "origin", setup with some standard TLS / SSL properties, along
-  with your certificate and custom domain name
-* A DNS record in Route53 for your site's custom domain name.
+Most of the work is performed by a [custom CDK construct I have written - `cdk-website`](https://github.com/symphoniacloud/cdk-website) - and I encourage you to read the documentation in that project for more background.
 
-This example has two resource pre-requisites - a Route53 DNS _Hosted Zone_ and an SSL / TLS certificate in AWS
-Certificate Manager (ACM). The additionally included "prereqs" template will deploy a new Route 53 zone, as well as a
-certificate, but for your own needs you may already have these setup.
+## Prerequistes
 
-**SSL / TLS certificates for CloudFront MUST be deployed to AWS region us-east-1, even if you deploy the stack
-containing the CloudFront distribution to a different region.**
+Please see the [prerequisites of the cdk-bare-bones](https://github.com/symphoniacloud/cdk-bare-bones#prerequisites) project - they are the same as for this one.
 
 ## Deployment
 
-### Required environment
+After cloning this project to your local machine, run the following:
 
-* AWS Account
-* Local terminal environment
-* AWS profile with sufficient privs (e.g. admin)
-* AWS CLI, cfn-lint
-
-### Prereqs stack, if necessary
-
-If you don't have a Route 53 hosted zone, or certificate, then deploy the prereqs stack. (If you have the zone, but not
-the certificate, then comment out the hosted zone resource in the prereqs template.)
-
-1. Switch to the [`prereqs`](./prereqs) directory
-1. Update the `ZoneDomainName` parameter default value in [`template.yaml`](./prereqs/template.yaml)
-1. Start deployment by running [`deploy.sh`](./prereqs/deploy.sh)
-1. If you're creating a new hosted zone then once that resource has been has been deployed you'll need to update
-   upstream DNS (either a parent zone,or DNS registration) with the new Name Servers / NS records (visible in the zone's
-   details in [Route 53](https://console.aws.amazon.com/route53/v2/home#Dashboard))
-1. Switch to the _Certificate Manager_ (ACM) web console **in
-   us-east-1** [here](https://console.aws.amazon.com/acm/home?region=us-east-1#/)
-1. Drill into the new certificate, select one of the "domains", and click "Create Record in Route 53"
-1. Wait for CloudFormation to complete (there'll be a delay while ACM validates DNS)
-
-### Web stack
-
-1. Switch back to the root directory of this project
-1. If you already had your own hosted zone and/or certificate, then in [`deploy.sh`](./deploy.sh)
-   update `HOSTED_ZONE_ID` and `CERTIFICATE_ARN`, otherwise the script will use the prereqs stack
-1. Update the `SiteDomainName` parameter default value in [`template.yaml`](./template.yaml)
-1. Start deployment by running [`deploy.sh`](./deploy.sh)
-1. Assuming deployment is successful you should be able to visit https://YOUR_SITE_DOMAIN_NAME
-
-## Making updates
-
-The most immediate thing you'll want to do next is deploy some actually interesting content. The [`deploy.sh`](./deploy.sh)
-script performs an `s3 sync`, and you can change the source path in that line as necessary. Typically, you'll want to build your site just prior
-to deployment.
-
-After that you might want to consider changing some of the CloudFront caching configuration, for example default TTL or the
-cache policy.
-
-If you're hosting a "landing page" type website you might want to host both "yourdomain.com" and "www.yourdomain.com" .
-To do this, and assuming you're using a wildcard certificate that will host both of these domain names, you can add a
-second element to the `Aliases` list in the `CloudFrontDistribution` resource, e.g. as follows:
-
-```yaml
-- !Sub "www.${SiteDomainName}"
+```shell
+$ npm install && npm run deploy
 ```
 
-You'll also need to add a second DNS Record. You can do this by adding a new element to the `RecordSets` list in the
-`DNSRecord` resource - duplicate the existing one, but change the name to the same as the new alias name.
+If successful, the end result will look something like this:
 
-For most websites you'll also often want things like default pages in subdirectories. For that your best bet is likely
-to use [_CloudFront Functions_](https://aws.amazon.com/blogs/aws/introducing-cloudfront-functions-run-your-code-at-the-edge-with-low-latency-at-any-scale/) .
+```shell
+coffee-store-web: creating CloudFormation changeset...
+
+ ✅  CoffeeStoreWeb (coffee-store-web)
+
+✨  Deployment time: 292.86s
+
+Outputs:
+CoffeeStoreWeb.CloudFrontUrl = d3p8vqr2dw4uqj.cloudfront.net
+Stack ARN:
+arn:aws:cloudformation:us-east-1:123456789012:stack/coffee-store-web/d92ffbc0-18d3-11ed-b23b-12285e0da875
+
+✨  Total time: 298.94s
+
+```
+
+Assuming deployment is successful then load the `CoffeeStoreWeb.CloudFrontUrl` value (the one ending in `cloudfront.net`) from your version of the output in a browser - you should the see a message saying _"Hello Coffee World!"_ 
+
+> Once you've run npm install once in the directory you won't need to again
+
+For other commands, **including how to teardown**, see the [_Usage_ section of the bare-bones project README](https://github.com/symphoniacloud/cdk-bare-bones#usage)
+
+## Next steps
+
+The most immediate thing you'll want to do next is deploy some actually interesting content. By default this project uploads everything from [_src/site_](src/site) to your site, so you can just change the contents of that directory. Alternatively if your site has a build process you may want to run that first, and change the `content` -> `path` property in [app.ts](src/cdk/app.ts) to point to your build output folder.
+
+Other next steps including custom domain names, setting up mutliple environments, using Github Actions, and more, can be found in the larger [Coffee Store Web Full](https://github.com/symphoniacloud/coffee-store-web-demo) project.
 
 ## Scaling and Cost
 
@@ -100,18 +69,6 @@ All of the primary resources in this example are _serverless_ - in other words t
 actual load, and their costs are tied to this load. Your biggest cost will likely be CloudFront - see the CloudFront
 [pricing page here](https://aws.amazon.com/cloudfront/pricing/).
 
-## Teardown
-
-### Web stack
-
-1. Empty the contents of the S3 bucket
-1. Delete the 'web' stack in CloudFormation
-
-### Prereqs stack, if necessary
-
-1. Delete the "ACM" validation record in Route 53
-1. Delete the 'web-prereqs' stack in CloudFormation
-1. Manually delete the hosted zone in Route 53 if necessary.
 
 ## Questions / Feedback / etc.
 
