@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import {App, Fn, Stack, StackProps} from 'aws-cdk-lib';
+import {App, CfnOutput, Stack, StackProps} from 'aws-cdk-lib';
 import {Construct} from 'constructs';
 import {Website} from "@symphoniacloud/cdk-website";
 import {createStackProps} from "./initSupport";
@@ -11,20 +11,21 @@ class CoffeeStoreWeb extends Stack {
     constructor(scope: Construct, id: string, props: StackProps) {
         super(scope, id, props);
 
-        new Website(this, 'Website', {
-            // Remove this customDomain property if you don't want to setup a custom domain,
-            // and instead just use the default "cloudfront.net" domain name
-            customDomain: {
-                domainName: 'cloudcoffeebreak.com',
-                hostedZone: {fromDomainName: 'cloudcoffeebreak.com'},
-                certificate: {fromArn: Fn.importValue('CloudCoffeeBreakCertificate')}
-            },
+        // This is a very basic example that just uses the default cloudfront.net domain name
+        // For an example of setting a custom domain name, see the https://github.com/symphoniacloud/coffee-store-web-demo project
+        const website = new Website(this, 'Website', {
+            // This
             content: {
                 // If you build your site before deployment then change this path to that of your build output
                 path: 'src/site',
+                // You probably don't want to do this on a real project in development since invalidations can start costing money
+                // For a better production vs development setup, see how I do it
+                // in the https://github.com/symphoniacloud/coffee-store-web-demo project
                 performCacheInvalidation: true
             }
         })
+
+        new CfnOutput(this, 'CloudFrontUrl', { value: website.cloudFront.distributionDomainName })
     }
 }
 
