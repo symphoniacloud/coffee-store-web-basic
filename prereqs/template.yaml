@@ -6,11 +6,10 @@ Parameters:
     Default: 'cloudcoffeebreak.com'
 
 Outputs:
-  HostedZone:
-    Value: !Ref HostedZone
-
   CertificateArn:
     Value: !Ref Certificate
+    Export:
+      Name: CloudCoffeeBreakCertificate
 
 Resources:
   HostedZone:

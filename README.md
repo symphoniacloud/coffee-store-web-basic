@@ -3,6 +3,9 @@
 There are many ways of hosting websites. If you want to host on AWS it's not as easy as it could be, but this example
 will get you started.
 
+**TODO** - update for CDK
+**TODO** - point to CloudFormation version on branch
+
 ## Introduction
 
 In this modern age of the web, it's become standard to host websites using https / SSL / TLS. If all you need is plain
@@ -54,7 +57,7 @@ the certificate, then comment out the hosted zone resource in the prereqs templa
 1. Switch to the [`prereqs`](./prereqs) directory
 1. Update the `ZoneDomainName` parameter default value in [`template.yaml`](./prereqs/template.yaml)
 1. Start deployment by running [`deploy.sh`](./prereqs/deploy.sh)
-1. If you're creating a new hosted zone then once that resource has been has been deployed you'll need to update
+1. If you're creating a new hosted zone then once that resource has been deployed you'll need to update
    upstream DNS (either a parent zone,or DNS registration) with the new Name Servers / NS records (visible in the zone's
    details in [Route 53](https://console.aws.amazon.com/route53/v2/home#Dashboard))
 1. Switch to the _Certificate Manager_ (ACM) web console **in
