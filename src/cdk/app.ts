@@ -17,7 +17,7 @@ class CoffeeStoreWeb extends Stack {
             // This
             content: {
                 // If you build your site before deployment then change this path to that of your build output
-                path: 'src/site',
+                path: '../site',
                 // You probably don't want to do this on a real project in development since invalidations can start costing money
                 // For a better production vs development setup, see how I do it
                 // in the https://github.com/symphoniacloud/coffee-store-web-full project
