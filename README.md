@@ -17,9 +17,23 @@ This example is part of a collection of CDK examples - others are as follows:
 
 ## How this example works
 
-This example deploys a CDK _App_ that uses S3 and CloudFront to host a website.
+This example deploys an [**S3 Bucket**](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html) to hold your website content, and a [**CloudFront Distribution**](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html) to handle web requests.
+CloudFront is actually a Content Delivery Network (CDN) and so also provides a location-oriented cache.
 
-Most of the work is performed by a [custom CDK construct I have written - `cdk-website`](https://github.com/symphoniacloud/cdk-website) - and I encourage you to read the documentation in that project for more background.
+The example deploys these two resources as a CDK _App_, which in turn uses AWS CloudFormation under the covers, to provide an automated infrastructure-as-code process.
+
+During the deployment process your site's content is also uploaded, courtesy of CDK's [`BucketDeployment` Construct](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_s3_deployment.BucketDeployment.html).
+If you want to use your own upload mechanism then remove the `BucketDeployment` from the code.
+
+This example **does not** include setting up a custom hostname for the site - it uses the default
+provided by cloudfront. To use a custom hostname see my [Coffee Store Web Full](https://github.com/symphoniacloud/coffee-store-web-full) example project instead. 
+
+Mostly this example uses the default configuration for S3 and CloudFront provided by CDK or the services themselves - including "good practice" security.
+A few small tweaks related to CloudFront are:
+
+* Redirect http requests to https (NB: this is good for web _sites_ but not always a great idea for web _APIs_ - see [this link for why](https://jviide.iki.fi/http-redirects))
+* Enable http version 2 and version 3
+* Set the default root object (for requests to `/`) as _index.html_
 
 ## Prerequistes
 
@@ -27,11 +41,19 @@ Please see the [prerequisites of the cdk-bare-bones](https://github.com/symphoni
 
 ## Deployment
 
-After cloning this project to your local machine, run the following:
+After cloning this project to your local machine, run the following, which uses the default CloudFormation stack name of `coffee-store-web`:
 
 ```shell
 $ npm install && npm run deploy
 ```
+
+Alternatively if you want to use a custom stack name then specify the `stackName` CDK context property e.g. as follows:
+
+```shell
+$ npm install && npm run deploy -- --context stackName=my-website-stack
+```
+
+This will normally take 5 - 15 minutes the first time you deploy, mostly because of how long it takes AWS to provision a new CloudFront distribution.
 
 If successful, the end result will look something like this:
 
@@ -40,26 +62,44 @@ coffee-store-web: creating CloudFormation changeset...
 
  ✅  CoffeeStoreWeb (coffee-store-web)
 
-✨  Deployment time: 292.86s
+✨  Deployment time: 610.9s
 
 Outputs:
-CoffeeStoreWeb.CloudFrontUrl = d3p8vqr2dw4uqj.cloudfront.net
+CoffeeStoreWeb.CloudFrontUrl = dcurepuzhyubr.cloudfront.net
 Stack ARN:
 arn:aws:cloudformation:us-east-1:123456789012:stack/coffee-store-web/d92ffbc0-18d3-11ed-b23b-12285e0da875
 
-✨  Total time: 298.94s
-
+✨  Total time: 613s
 ```
 
-Assuming deployment is successful then load the `CoffeeStoreWeb.CloudFrontUrl` value (the one ending in `cloudfront.net`) from your version of the output in a browser - you should the see a message saying _"Hello Coffee World!"_ 
+Assuming deployment is successful then go to the `CoffeeStoreWeb.CloudFrontUrl` value (the one ending in `cloudfront.net`) from your version of the output in a browser - you should the see a message saying _"Hello Coffee World!"_ 
 
 > Once you've run npm install once in the directory you won't need to again
 
-For other commands, **including how to teardown**, see the [_Usage_ section of the bare-bones project README](https://github.com/symphoniacloud/cdk-bare-bones#usage)
+### Teardown
+
+To teardown the stack either (a) delete the stack from the CloudFormation console or (b) run the following.
+**IMPORTANT** - if you haven't made any changes to the project this will delete the default stack (`coffee-store-web`) in your Account + Region.
+
+```shell
+$ npm run cdk-destroy
+...
+Are you sure you want to delete: CoffeeStoreWeb (y/n)? y
+CoffeeStoreWeb (coffee-store-web): destroying...
+
+ ✅  CoffeeStoreWeb (coffee-store-web): destroyed
+```
+
+If you want to teardown a stack with name that's not the default, you can add a stackName property, e.g. `-- --context stackName=my-app-stack`, the same as with `deploy`.
+
+Once teardown is completed you'll need to manually delete the contents of the S3 bucket and the bucket itself.
+
+For other commands see the [_Usage_ section of the bare-bones project README](https://github.com/symphoniacloud/cdk-bare-bones#usage).
 
 ## Next steps
 
-The most immediate thing you'll want to do next is deploy some actually interesting content. By default this project uploads everything from [_src/site_](src/site) to your site, so you can just change the contents of that directory. Alternatively if your site has a build process you may want to run that first, and change the `content` -> `path` property in [app.ts](src/cdk/app.ts) to point to your build output folder.
+The most immediate thing you'll want to do next is deploy some actually interesting content. By default this project uploads everything from [_src/site_](src/site) to your site, so you can just change the contents of that directory.
+Alternatively if your site has a build process you may want to run that first, and change the `sources` property under the `BucketDeployment` instance in [app.ts](src/cdk/app.ts) to point to your build output folder.
 
 Other next steps including custom domain names, setting up multiple environments, using Github Actions, and more, can be found in the larger [Coffee Store Web Full](https://github.com/symphoniacloud/coffee-store-web-full) project.
 
@@ -73,14 +113,28 @@ All of the primary resources in this example are _serverless_ - in other words t
 actual load, and their costs are tied to this load. Your biggest cost will likely be CloudFront - see the CloudFront
 [pricing page here](https://aws.amazon.com/cloudfront/pricing/).
 
+Note that if you are deploying frequently - e.g. in a development environment - you'll likely want to turn off CloudFront cache invalidation for non-production environments.
+See the comment for the `distribution` property in the `BucketDeployment` instance in [app.ts](src/cdk/app.ts)
 
 ## Questions / Feedback / etc.
 
 If you have questions related to this example please add a Github issue, or drop me a line
-at [mike@symphonia.io](mailto:mike@symphonia.io) . I'm also on Twitter
-at [@mikebroberts](https://twitter.com/mikebroberts) .
+at [mike@symphonia.io](mailto:mike@symphonia.io) . I'm also on Mastodon at http://hachyderm.io/@mikebroberts and BlueSky at https://bsky.app/profile/mikebroberts.com .
 
 ## Changelog
+
+### 2025.1
+
+* Switch to Node 22 from 16
+* Update package-lock to use latest versions of specified dependencies
+* Use TypeScript 5
+* Inline `cdk-website` custom construct into project, and include following changes:
+  * Change to Origin Access Control from Origin Identity Control for CloudFront to S3 access
+  * Specify custom logger on `BucketDeployment` so that we can specify log retention
+  * Remove specifying various S3 bucket properties which are now default
+* Switched to tsx from ts-node in CDK configuration
+  * And so run tsc manually during deploy to perform pre-deploy typechecking 
+* Removed no-longer used "import 'source-map-support/register'" from CDK
 
 ### 2022.1
 

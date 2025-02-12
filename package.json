@@ -1,6 +1,6 @@
 {
     "name": "coffee-store-web-basic",
-    "version": "2022.1.1",
+    "version": "2025.1.0",
     "homepage": "https://github.com/symphoniacloud/coffee-store-web-basic",
     "license": "MIT",
     "author": {
@@ -9,17 +9,16 @@
         "url": "https://symphonia.io"
     },
     "devDependencies": {
-        "@tsconfig/node16": "1.x",
-        "@types/node": "^16.x",
+        "@tsconfig/node22": "22.x",
+        "@types/node": "22.x",
         "aws-cdk": "2.x",
         "aws-cdk-lib": "2.x",
-        "@symphoniacloud/cdk-website": "0.0.6",
         "constructs": "10.x",
-        "ts-node": "10.x",
-        "typescript": "4.x"
+        "tsx": "4.x",
+        "typescript": "5.x"
     },
     "scripts": {
-        "deploy": "cd src/cdk && npx cdk deploy",
+        "deploy": "npx tsc && cd src/cdk && npx cdk deploy",
         "cdk-diff" : "cd src/cdk && npx cdk diff",
         "cdk-destroy" : "cd src/cdk && npx cdk destroy",
         "precdk-command": "echo \"Running CDK with command: $npm_config_command\"",
