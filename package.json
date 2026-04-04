@@ -1,27 +1,46 @@
 {
-    "name": "coffee-store-web-basic",
-    "version": "2025.1.0",
-    "homepage": "https://github.com/symphoniacloud/coffee-store-web-basic",
-    "license": "MIT",
-    "author": {
-        "email": "mike@symphonia.io",
-        "name": "Mike Roberts",
-        "url": "https://symphonia.io"
-    },
-    "devDependencies": {
-        "@tsconfig/node22": "22.x",
-        "@types/node": "22.x",
-        "aws-cdk": "2.x",
-        "aws-cdk-lib": "2.x",
-        "constructs": "10.x",
-        "tsx": "4.x",
-        "typescript": "5.x"
-    },
-    "scripts": {
-        "deploy": "npx tsc && cd src/cdk && npx cdk deploy",
-        "cdk-diff" : "cd src/cdk && npx cdk diff",
-        "cdk-destroy" : "cd src/cdk && npx cdk destroy",
-        "precdk-command": "echo \"Running CDK with command: $npm_config_command\"",
-        "cdk-command": "cd src/cdk && npx cdk $npm_config_command"
-    }
+  "name": "cdk-basic-website-template",
+  "version": "2026.1.0",
+  "description": "Deploying a basic website on AWS using CDK, S3, and CloudFront",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/symphoniacloud/cdk-basic-website-template.git"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "homepage": "https://github.com/symphoniacloud/cdk-basic-website-template",
+  "license": "MIT",
+  "author": {
+    "email": "mike@symphonia.io",
+    "name": "Mike Roberts",
+    "url": "https://symphonia.io"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.x",
+    "@tsconfig/node24": "24.x",
+    "@types/node": "24.x",
+    "aws-cdk": "2.x",
+    "aws-cdk-lib": "2.x",
+    "constructs": "10.x",
+    "eslint": "9.x",
+    "eslint-config-prettier": "10.x",
+    "prettier": "3.x",
+    "tsx": "4.x",
+    "typescript": "5.x",
+    "typescript-eslint": "8.x"
+  },
+  "scripts": {
+    "local-checks": "tsc && npm run lint && npm run format",
+    "lint": "eslint --max-warnings=0 \"src/**/*.{js,ts}\"",
+    "lint-fix": "eslint --max-warnings=0 --fix \"src/**/*.{js,ts}\"",
+    "format": "prettier --check \"src/**/*.{js,ts}\"",
+    "deploy": "cd src/cdk && npx cdk deploy",
+    "cdk-diff": "cd src/cdk && npx cdk diff",
+    "cdk-destroy": "cd src/cdk && npx cdk destroy",
+    "precdk-command": "echo \"Running CDK with command: $npm_config_command\"",
+    "cdk-command": "cd src/cdk && npx cdk $npm_config_command"
+  }
 }

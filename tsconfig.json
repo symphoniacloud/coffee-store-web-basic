@@ -1,9 +1,10 @@
 {
-  "extends": "@tsconfig/node22/tsconfig.json",
+  "extends": "@tsconfig/node24/tsconfig.json",
+  "include": ["src/**/*.ts"],
   "compilerOptions": {
     "noEmit": true,
-    "noImplicitAny": true,
     "noImplicitReturns": true,
-    "strictNullChecks": true
+    "module": "preserve",
+    "moduleResolution": "bundler"
   }
 }
